@@ -4,6 +4,45 @@
 # This allows client resource packs to restore the appearance of newer items entirely missing from this older version.
 pass-original-item-name-to-resource-packs: true
 #
+# Exact color mappings applied to all text components before ViaBackwards converts
+# hex colors for pre-1.16 clients. This includes item names/lore, chat, tab,
+# scoreboards, titles, holograms, and other component-based text.
+custom-hex-color-mappings:
+  "#2D2DBF": "#0000AA"
+  "#2F8F2F": "#00AA00"
+  "#2B8C99": "#00AAAA"
+  "#BB3333": "#AA0000"
+  "#8A2D8A": "#AA00AA"
+  "#E69A30": "#FFAA00"
+  "#B0B0B0": "#AAAAAA"
+  "#666666": "#555555"
+  "#6FD96F": "#55FF55"
+  "#66D9E8": "#55FFFF"
+  "#E76A6A": "#FF5555"
+  "#E37DE3": "#FF55FF"
+  "#F4D35E": "#FFFF55"
+  "#6A6AFF": "#5555FF"
+  "#F5F5F5": "#FFFFFF"
+  "#D8FF8F": "#55FF55"
+  "#88B825": "#00AA00"
+  "#9BC5FF": "#5555FF"
+  "#3468E1": "#0000AA"
+  "#C5A3FF": "#5555FF"
+  "#6A2EDB": "#0000AA"
+  "#FF8FA3": "#FF5555"
+  "#5A3E27": "#FFFF55"
+  "#4F7F25": "#55FF55"
+  "#38535B": "#55FFFF"
+#
+# Custom block replacements for legacy clients. Keys are source block ids, optionally with data.
+# Values are target block ids, optionally with data. If the source data is omitted, all data values match.
+# If the target data is -1, the original source data is preserved.
+# Example:
+# block-replacements:
+#   "251": "159:-1" # Concrete -> stained clay, preserving color data
+#   "235": "159:0"  # White glazed terracotta -> white stained clay
+block-replacements: {}
+#
 # Always shows a mapped mob's original name, and not only when hovering over it with the cursor.
 always-show-original-mob-name: true
 #

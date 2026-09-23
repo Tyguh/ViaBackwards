@@ -24,6 +24,7 @@ import com.viaversion.nbt.tag.StringTag;
 import com.viaversion.viabackwards.api.data.TranslatableMappings;
 import com.viaversion.viabackwards.api.rewriters.BackwardsItemRewriter;
 import com.viaversion.viabackwards.api.rewriters.EnchantmentRewriter;
+import com.viaversion.viabackwards.api.rewriters.text.LegacyColorMapper;
 import com.viaversion.viabackwards.item.DataItemWithExtras;
 import com.viaversion.viabackwards.protocol.v1_14to1_13_2.Protocol1_14To1_13_2;
 import com.viaversion.viabackwards.protocol.v1_14to1_13_2.storage.ChunkLightStorage;
@@ -456,6 +457,7 @@ public class BlockItemPacketRewriter1_14 extends BackwardsItemRewriter<Clientbou
             try {
                 for (int i = 0; i < lore.size(); i++) {
                     final JsonElement loreEntry = lore.get(i);
+                    LegacyColorMapper.map(loreEntry);
                     final var component = SerializerVersion.V1_12.toComponent(loreEntry);
                     if (component == null) {
                         lore.remove(i);

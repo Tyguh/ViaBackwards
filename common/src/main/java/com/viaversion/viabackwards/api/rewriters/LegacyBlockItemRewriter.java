@@ -25,6 +25,7 @@ import com.viaversion.nbt.tag.NumberTag;
 import com.viaversion.nbt.tag.ShortTag;
 import com.viaversion.nbt.tag.StringTag;
 import com.viaversion.nbt.tag.Tag;
+import com.viaversion.viabackwards.ViaBackwards;
 import com.viaversion.viabackwards.api.BackwardsProtocol;
 import com.viaversion.viabackwards.api.data.BackwardsMappingDataLoader;
 import com.viaversion.viabackwards.api.data.MappedLegacyBlockItem;
@@ -238,6 +239,14 @@ public abstract class LegacyBlockItemRewriter<C extends ClientboundPacketType, S
     }
 
     public @Nullable IdAndData handleBlock(int blockId, int data) {
+        IdAndData customBlock = getCustomBlockReplacement(blockId, data);
+        if (customBlock != null) {
+            if (customBlock.getData() == -1) {
+                return customBlock.withData(data);
+            }
+            return customBlock;
+        }
+
         MappedLegacyBlockItem settings = getMappedBlock(blockId, data);
         if (settings == null) {
             return null;
@@ -259,6 +268,12 @@ public abstract class LegacyBlockItemRewriter<C extends ClientboundPacketType, S
         if (mappedBlock == null) return rawId;
 
         return IdAndData.toRawData(mappedBlock.getId(), mappedBlock.getData());
+    }
+
+    private @Nullable IdAndData getCustomBlockReplacement(final int id, final int data) {
+        final Map<Integer, IdAndData> replacements = ViaBackwards.getConfig().customBlockReplacements();
+        IdAndData replacement = replacements.get(compress(id, data));
+        return replacement != null ? replacement : replacements.get(compress(id, -1));
     }
 
     public void handleChunk(Chunk chunk) {

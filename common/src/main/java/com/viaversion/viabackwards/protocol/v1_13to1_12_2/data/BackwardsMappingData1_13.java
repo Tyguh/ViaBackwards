@@ -21,6 +21,7 @@ package com.viaversion.viabackwards.protocol.v1_13to1_12_2.data;
 import com.viaversion.nbt.tag.CompoundTag;
 import com.viaversion.nbt.tag.NumberTag;
 import com.viaversion.nbt.tag.Tag;
+import com.viaversion.viabackwards.ViaBackwards;
 import com.viaversion.viabackwards.api.data.BackwardsMappingData;
 import com.viaversion.viabackwards.api.data.MappedItem;
 import com.viaversion.viaversion.api.data.MappingDataLoader;
@@ -32,6 +33,7 @@ import com.viaversion.viaversion.protocols.v1_12_2to1_13.Protocol1_12_2To1_13;
 import com.viaversion.viaversion.protocols.v1_12_2to1_13.blockconnections.ConnectionData;
 import com.viaversion.viaversion.protocols.v1_12_2to1_13.data.BlockStates1_13;
 import com.viaversion.viaversion.protocols.v1_12_2to1_13.data.StatisticMappings1_13;
+import com.viaversion.viaversion.util.IdAndData;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -102,6 +104,11 @@ public class BackwardsMappingData1_13 extends BackwardsMappingData {
 
     @Override
     public int getNewBlockStateId(int id) {
+        IdAndData customReplacement = ViaBackwards.getConfig().customBlockReplacements().get(compressBlock(id, -1));
+        if (customReplacement != null) {
+            return IdAndData.toRawData(customReplacement.getId(), customReplacement.getData() == -1 ? 0 : customReplacement.getData());
+        }
+
         // Always map to unpowered_comparator; powered_comparator is unused in 1.12 https://github.com/ViaVersion/ViaBackwards/issues/1222
         if (id >= 5635 && id <= 5650) {
             int mappedId = super.getNewBlockStateId(id);
@@ -119,6 +126,10 @@ public class BackwardsMappingData1_13 extends BackwardsMappingData {
             case 1611, 1612, 1613 -> 1600; // red mushroom block
             default -> mappedId;
         };
+    }
+
+    private int compressBlock(final int id, final int data) {
+        return (id << 16) | (data & 0xFFFF);
     }
 
     @Override

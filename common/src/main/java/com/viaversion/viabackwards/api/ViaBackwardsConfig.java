@@ -18,8 +18,24 @@
 package com.viaversion.viabackwards.api;
 
 import com.viaversion.viaversion.api.configuration.Config;
+import com.viaversion.viaversion.util.IdAndData;
+import java.util.Map;
 
 public interface ViaBackwardsConfig extends Config {
+
+    /**
+     * Returns exact RGB remappings used before colors are downgraded for pre-1.16 clients.
+     *
+     * @return source RGB to target RGB mappings
+     */
+    Map<Integer, Integer> customHexColorMappings();
+
+    /**
+     * Returns custom legacy block replacements. Keys use ViaBackwards' compressed block id/data format.
+     *
+     * @return source block id/data to target block id/data mappings
+     */
+    Map<Integer, IdAndData> customBlockReplacements();
 
     /**
      * Mimics name and level of a custom enchant through the item's lore.
