@@ -21,16 +21,23 @@ import com.viaversion.viabackwards.api.DialogStyleConfig;
 import com.viaversion.viaversion.util.ChatColorUtil;
 import com.viaversion.viaversion.util.Config;
 import com.viaversion.viaversion.util.ConfigSection;
+import com.viaversion.viaversion.util.IdAndData;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class ViaBackwardsConfig extends Config implements com.viaversion.viabackwards.api.ViaBackwardsConfig {
 
+    private final Logger logger;
+    private Map<Integer, Integer> customHexColorMappings = Collections.emptyMap();
+    private Map<Integer, IdAndData> customBlockReplacements = Collections.emptyMap();
     private boolean addCustomEnchantsToLore;
     private boolean addTeamColorToPrefix;
     private boolean fix1_13FacePlayer;
@@ -51,6 +58,7 @@ public class ViaBackwardsConfig extends Config implements com.viaversion.viaback
 
     public ViaBackwardsConfig(File configFile, Logger logger) {
         super(configFile, logger);
+        this.logger = logger;
     }
 
     @Override
@@ -59,7 +67,14 @@ public class ViaBackwardsConfig extends Config implements com.viaversion.viaback
         loadFields();
     }
 
+    @Override
+    public Set<String> getSectionsWithModifiableKeys() {
+        return Set.of("custom-hex-color-mappings", "block-replacements");
+    }
+
     private void loadFields() {
+        customHexColorMappings = loadCustomHexColorMappings(getSection("custom-hex-color-mappings"));
+        customBlockReplacements = loadCustomBlockReplacements(getSection("block-replacements"));
         addCustomEnchantsToLore = getBoolean("add-custom-enchants-into-lore", true);
         addTeamColorToPrefix = getBoolean("add-teamcolor-to-prefix", true);
         fix1_13FacePlayer = getBoolean("fix-1_13-face-player", false);
@@ -77,6 +92,63 @@ public class ViaBackwardsConfig extends Config implements com.viaversion.viaback
         dialogStyleConfig = loadDialogStyleConfig(getSection("dialog-style"));
         codeOfConductAsDialog = getBoolean("code-of-conduct-as-dialog", true);
         passOriginalItemNameToResourcePacks = getBoolean("pass-original-item-name-to-resource-packs", true);
+    }
+
+    private Map<Integer, Integer> loadCustomHexColorMappings(final ConfigSection section) {
+        final Map<Integer, Integer> mappings = new HashMap<>();
+        for (final Map.Entry<String, Object> entry : section.getValues().entrySet()) {
+            final Integer sourceRgb = parseRgb(entry.getKey());
+            final Integer targetRgb = parseRgb(String.valueOf(entry.getValue()));
+            if (sourceRgb == null || targetRgb == null) {
+                logger.warning("Ignoring invalid custom hex color mapping: "
+                    + entry.getKey() + " -> " + entry.getValue() + " (expected #RRGGBB -> #RRGGBB)");
+                continue;
+            }
+            mappings.put(sourceRgb, targetRgb);
+        }
+        return Collections.unmodifiableMap(mappings);
+    }
+
+    private Map<Integer, IdAndData> loadCustomBlockReplacements(final ConfigSection section) {
+        final Map<Integer, IdAndData> replacements = new HashMap<>();
+        for (final Map.Entry<String, Object> entry : section.getValues().entrySet()) {
+            final int[] source = parseBlockIdAndData(entry.getKey(), -1);
+            final int[] target = parseBlockIdAndData(String.valueOf(entry.getValue()), 0);
+            if (source == null || target == null) {
+                logger.warning("Ignoring invalid block replacement: "
+                    + entry.getKey() + " -> " + entry.getValue() + " (expected id[:data] -> id[:data])");
+                continue;
+            }
+
+            replacements.put(compressBlock(source[0], source[1]), new IdAndData(target[0], target[1]));
+        }
+        return Collections.unmodifiableMap(replacements);
+    }
+
+    private int[] parseBlockIdAndData(final String value, final int defaultData) {
+        final String[] parts = value.trim().split(":", 2);
+        try {
+            final int id = Integer.parseInt(parts[0].trim());
+            final int data = parts.length == 2 ? Integer.parseInt(parts[1].trim()) : defaultData;
+            if (id < 0 || data < -1 || data > 15) {
+                return null;
+            }
+            return new int[]{id, data};
+        } catch (final NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private int compressBlock(final int id, final int data) {
+        return (id << 16) | (data & 0xFFFF);
+    }
+
+    private Integer parseRgb(final String value) {
+        final String normalized = value.trim().toUpperCase(Locale.ROOT);
+        if (!normalized.matches("#[0-9A-F]{6}")) {
+            return null;
+        }
+        return Integer.parseInt(normalized.substring(1), 16);
     }
 
     private DialogStyleConfig loadDialogStyleConfig(final ConfigSection section) {
@@ -99,6 +171,16 @@ public class ViaBackwardsConfig extends Config implements com.viaversion.viaback
 
     protected String getString(final ConfigSection section, final String key, final String def) {
         return ChatColorUtil.translateAlternateColorCodes(section.getString(key, def));
+    }
+
+    @Override
+    public Map<Integer, Integer> customHexColorMappings() {
+        return customHexColorMappings;
+    }
+
+    @Override
+    public Map<Integer, IdAndData> customBlockReplacements() {
+        return customBlockReplacements;
     }
 
     @Override

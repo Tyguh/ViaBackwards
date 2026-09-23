@@ -21,6 +21,7 @@ package com.viaversion.viabackwards.protocol.v1_13to1_12_2;
 import com.viaversion.viabackwards.ViaBackwards;
 import com.viaversion.viabackwards.api.BackwardsProtocol;
 import com.viaversion.viabackwards.api.rewriters.text.JsonNBTComponentRewriter;
+import com.viaversion.viabackwards.api.rewriters.text.LegacyColorMapper;
 import com.viaversion.viabackwards.protocol.v1_13to1_12_2.data.BackwardsMappingData1_13;
 import com.viaversion.viabackwards.protocol.v1_13to1_12_2.data.PaintingNames1_13;
 import com.viaversion.viabackwards.protocol.v1_13to1_12_2.provider.BackwardsBlockEntityProvider;
@@ -168,6 +169,7 @@ public class Protocol1_13To1_12_2 extends BackwardsProtocol<ClientboundPackets1_
             return "";
         }
 
+        LegacyColorMapper.map(value);
         translatableToLegacyRewriter.processText(connection, value);
         return ComponentUtil.jsonToLegacy(value);
     }
